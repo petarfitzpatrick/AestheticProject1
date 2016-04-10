@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+
+<body>
+
+<canvas id="myCanvas" width="900" height="900">
+
+</body>
+
+
+<script>
+(function(){
+	
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+
+c.addEventListener("mousedown", doMouseDown, false);
+
+function doMouseDown(event){
+	c_x = event.pageX;
+	c_y = event.pageY;
+	console.log("X is " + c_x + " Y is " + c_y);
+}
+
+var grid = [];
+var rowMax = 30;
+var colMax = 30;
+
+var soundGrid = [];
+
+//Audio Stuff
+var aud = new AudioContext();
+
+var note = function( freq, attack, decay, delayTime ) {
+  var osc = aud.createOscillator(),
+      delay = aud.createDelay( 2 ),
+      oscVolume  = aud.createGain(),
+      feedback   = aud.createGain()
+  
+  osc.frequency.value = freq
+  feedback.gain.value = .5
+  delay.delayTime.value = delayTime // measured in ms
+  
+  // create volume envelope for oscillator
+  oscVolume.gain.setValueAtTime( 0, aud.currentTime )
+  oscVolume.gain.linearRampToValueAtTime( .1, aud.currentTime + attack )
+  oscVolume.gain.linearRampToValueAtTime( 0, aud.currentTime + attack + decay )
+  
+  // connect oscillator to gain to control its volume
+  osc.connect( oscVolume )
+
+  // connect oscillator gain to output
+  oscVolume.connect( aud.destination )
+  
+  // connect oscillator to delay
+  oscVolume.connect( delay )
+
+  // connect delay to feedback gain to control feedback amount
+  delay.connect( feedback )
+
+  // connect feedback control back into the delay to create loop
+  feedback.connect( delay )
+
+  // also connect delay to output
+  delay.connect( aud.destination )
+
+  // play a note immediately
+  osc.start( aud.currentTime )
+
+  // stop note after envelope is complete
+  osc.stop( aud.currentTime + attack + decay )
+}
+
+//Create the grids
+for (var row = 0; row < rowMax; row++){
+	grid[row] = [];
+	soundGrid[row] = [];
+}
+
+//Begin program and loop it
+init();
+window.requestAnimationFrame(animate);
+
+function animate() {
+    setTimeout(function() {
+      window.requestAnimationFrame(animate);
+    }, 100);
+		draw();
+    update();
+
+}
+
+//Populates both two dimensional arrays
+function init(){
+	//Nested for loops to populate
+	for(var row = 0; row < rowMax; row++){
+		for(var col = 0; col < colMax; col++){
+			//grid[row].push(Math.floor(Math.random() + 0.5));
+			grid[row][col] = 0;
+			soundGrid[row][col] = col*100;
+		}
+	}
+	grid[3][12] = 1;
+	grid[3][13] = 1;
+	grid[4][13] = 1;
+	grid[3][11] = 1;
+	grid[12][3] = 1;
+	grid[7][7] = 1;
+}
+
+//Updates the grid every frame
+function update(){
+	//Clear to begin
+	var newGrid = [];
+	for (var row = 0; row < rowMax; row++){
+		newGrid[row] = [];
+	}
+	
+	for(var row = 0; row < rowMax; row++){
+		for(var col = 0; col < colMax; col++){
+			//Var to count neighbors
+			var count = 0;
+			
+			//If there is an above row...
+			if (row > 0){
+				//Checking all values on row above
+				if (col > 0 && grid[row - 1][col - 1] == 1){ count++; }
+				if (grid[row - 1][col] == 1){ count++; }
+				if (col < colMax - 1 && grid[row - 1][col + 1] == 1){ count++; }
+			}
+			//If there is a bottom row...
+			if (row < rowMax - 1){
+				//Check all values on row below
+				if (col > 0 && grid[row + 1][col - 1] == 1){ count++; }
+				if (grid[row + 1][col] == 1){ count++; }
+				if (col < colMax - 1 && grid[row + 1][col + 1] == 1){ count++; }
+			}
+			//Check the left and right values
+			if (col > 0 && grid[row][col - 1] == 1){ count++; }
+			if (col < colMax - 1 && grid[row][col + 1] == 1){ count++; }
+			
+			//If it's alive
+			if (grid[row][col] == 1){
+				//Check over/under population
+				if (count < 2 || count > 3){
+					newGrid[row][col] = 0;
+					//playNote( 400, .02 );
+				} else {
+					newGrid[row][col] = 1;
+					
+				}
+			//If it's not alive
+			} else {
+				//Bring it back if it has 3 neighbors exactly
+				if (count == 3){
+					newGrid[row][col] = 1;
+					note( soundGrid[row][col], .02, .04, .06 );
+				} else {
+					newGrid[row][col] = 0;
+				}
+			} 
+		}
+	}
+	
+	//Populate next grid
+	for(var row = 0; row < rowMax; row++){
+		for(var col = 0; col < colMax; col++){
+			grid[row][col] = newGrid[row][col];
+		}
+	}
+}
+
+
+function draw(){
+	//Nested for loop for actually drawing
+	for(var rows = 0; rows < rowMax; rows++){
+		for(var cols = 0; cols < colMax; cols++){
+			if (grid[rows][cols] == 0){
+				ctx.fillStyle = "#674172";
+			} else if (grid[rows][cols] == 1){
+				ctx.fillStyle = "#59ABE3";
+			}
+			//console.log(grid[rows][cols]);
+			ctx.fillRect(rows * 30, cols * 30, 29, 29);
+			
+		}
+	}
+}
+
+})();
+</script>
+</html>
