@@ -27,6 +27,10 @@ function doMouseDown(event){
 }
 
 var grid = [];
+
+//permaGrid to hold 7
+var permaGrid = [];
+    
 var rowMax = 30;
 var colMax = 30;
 
@@ -47,7 +51,7 @@ var note = function( freq, attack, decay, delayTime ) {
   
   // create volume envelope for oscillator
   oscVolume.gain.setValueAtTime( 0, aud.currentTime )
-  oscVolume.gain.linearRampToValueAtTime( .06, aud.currentTime + attack )
+  oscVolume.gain.linearRampToValueAtTime( .04, aud.currentTime + attack )
   oscVolume.gain.linearRampToValueAtTime( 0, aud.currentTime + attack + decay )
   
   // connect oscillator to gain to control its volume
@@ -78,6 +82,7 @@ var note = function( freq, attack, decay, delayTime ) {
 //Create the grids
 for (var row = 0; row < rowMax; row++){
 	grid[row] = [];
+    permaGrid[row] = [];
 	soundGrid[row] = [];
 }
 
@@ -103,12 +108,7 @@ function init(){
 			soundGrid[row][col] = col*100;
         }
 	}
-	grid[3][12] = 1;
-	grid[3][13] = 1;
-	grid[4][13] = 1;
-	grid[3][11] = 1;
-	grid[12][3] = 1;
-	grid[7][7] = 1;
+
 }
     
 function checkMouse(){
@@ -123,7 +123,7 @@ function checkMouse(){
     rowRef = newY/30;
     
     if (newX > 0){
-        console.log("Nice " + colRef + "  " + rowRef);
+        //console.log("Nice " + colRef + "  " + rowRef);
         grid[Math.floor(colRef)][Math.floor(rowRef)] = 2;
     }
     
@@ -138,52 +138,91 @@ function update(){
 	for (var row = 0; row < rowMax; row++){
 		newGrid[row] = [];
 	}
+    
+    //Holds values of next grid
+    var nextGrid = [];
+	for (var row = 0; row < rowMax; row++){
+		nextGrid[row] = [];
+	}
 	
 	for(var row = 0; row < rowMax; row++){
 		for(var col = 0; col < colMax; col++){
 			//Var to count neighbors
 			var count = 0;
-			
+            
+            if (row < 29){
+                if (grid[row][col] == 2){
+                     
+                     //grid[row - 1][col] = 2;
+                     //grid[row][col - 1] = 2;
+                     nextGrid[row - 1][col] = 3;
+                     nextGrid[row][col - 1] = 4;
+                     nextGrid[row + 1][col] = 5;
+                     nextGrid[row][col + 1] = 6;
+                    
+                     permaGrid[row][col] = 7;
+                     nextGrid[row][col] = permaGrid[row][col];
+                     note( soundGrid[row][col], .02, .04, .06 );
+
+                //3 is the left movement value
+                } else if (grid[row][col] == 3){
+                    if (row > 0){
+                     nextGrid[row - 1][col] = 3;
+                    
+                     nextGrid[row][col] = 1;
+                    }
+                //4 is the top movement value
+                } else if (grid[row][col] == 4){
+                     nextGrid[row][col - 1] = 4;
+                    
+                     nextGrid[row][col] = 1;
+                //5 is the right movement value
+                } else if (grid[row][col] == 5){
+                     nextGrid[row + 1][col] = 5;
+                    
+                     nextGrid[row][col] = 1;
+                //6 is the bottom movement value
+                } else if (grid[row][col] == 6){
+                     nextGrid[row][col + 1] = 6;
+                    
+                     nextGrid[row][col] = 1;
+                }
+            }
+            
+            
+            
 			//If there is an above row...
 			if (row > 0){
 				//Checking all values on row above
-				if (col > 0 && grid[row - 1][col - 1] == 1){ count++; }
-				if (grid[row - 1][col] == 1){ count++; }
-				if (col < colMax - 1 && grid[row - 1][col + 1] == 1){ count++; }
+				
+                
 			}
 			//If there is a bottom row...
 			if (row < rowMax - 1){
 				//Check all values on row below
-				if (col > 0 && grid[row + 1][col - 1] == 1){ count++; }
-				if (grid[row + 1][col] == 1){ count++; }
-				if (col < colMax - 1 && grid[row + 1][col + 1] == 1){ count++; }
+				
 			}
 			//Check the left and right values
-			if (col > 0 && grid[row][col - 1] == 1){ count++; }
-			if (col < colMax - 1 && grid[row][col + 1] == 1){ count++; }
+			
 			
 			//If it's alive
-			if (grid[row][col] == 1){
-				//Check over/under population
-				if (count < 2 || count > 3){
-					newGrid[row][col] = 0;
-					//playNote( 400, .02 );
-				} else {
-					newGrid[row][col] = 1;
-					
-				}
-			//If it's not alive
-			} else {
-				//Bring it back if it has 3 neighbors exactly
-				if (count == 3){
-					newGrid[row][col] = 1;
-					note( soundGrid[row][col], .02, .04, .06 );
-				} else {
-					newGrid[row][col] = 0;
-				}
-			} 
+			
 		}
 	}
+    
+     for(var row = 0; row < rowMax; row++){
+		   for(var col = 0; col < colMax; col++){
+             if (grid[row][col] == 2){
+                   //newGrid[row][col] = 2;
+             } else if (grid[row][col] == 1){
+                   //newGrid[row][col] = 1;
+             } else if (grid[row][col] == 3){
+                   //newGrid[row][col] = 3;
+             } else {
+                   //newGrid[row][col] = 0;
+              }
+            }
+    }
 	
 	//Populate next grid
 	for(var row = 0; row < rowMax; row++){
@@ -191,6 +230,37 @@ function update(){
 			grid[row][col] = newGrid[row][col];
 		}
 	}
+    
+    for(var row = 0; row < rowMax; row++){
+        for(var col = 0; col < colMax; col++){
+            if (nextGrid[row][col]){
+                grid[row][col] = nextGrid[row][col];
+            } else {
+                grid[row][col] = 0;
+            }
+        }
+    }
+    
+    //Keep permaGrid values
+    for(var row = 0; row < rowMax; row++){
+        for(var col = 0; col < colMax; col++){
+            if ((permaGrid[row][col] == 7 && grid[row][col] == 3) || (permaGrid[row][col] == 7 && grid[row][col] == 4) || (permaGrid[row][col] == 7 && grid[row][col] == 5) || (permaGrid[row][col] == 7 && grid[row][col] == 6)){
+                console.log("Nice");
+                grid[row][col] = permaGrid[row][col];
+                
+                grid[row - 1][col] = 3;
+                grid[row][col - 1] = 4;
+                grid[row + 1][col] = 5;
+                grid[row][col + 1] = 6;
+                
+                note( soundGrid[row][col], .02, .04, .06 );
+            }
+            else if (permaGrid[row][col]){
+                grid[row][col] = permaGrid[row][col];
+            }
+        }
+    }
+    
     
     checkMouse();
 }
@@ -200,11 +270,11 @@ function draw(){
 	//Nested for loop for actually drawing
 	for(var rows = 0; rows < rowMax; rows++){
 		for(var cols = 0; cols < colMax; cols++){
-			if (grid[rows][cols] == 0){
+			if (grid[rows][cols] == 0 || grid[rows][cols] == 1){
 				ctx.fillStyle = "#674172";
-			} else if (grid[rows][cols] == 1){
+			} else if (grid[rows][cols] == 3 || grid[rows][cols] == 4 || grid[rows][cols] == 5 || grid[rows][cols] == 6){
 				ctx.fillStyle = "#59ABE3";
-			} else if (grid[rows][cols] == 2){
+			} else if (grid[rows][cols] == 2 || grid[rows][cols] == 7){
 				ctx.fillStyle = "#FF0000";
 			}
 			//console.log(grid[rows][cols]);
