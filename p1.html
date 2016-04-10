@@ -155,7 +155,9 @@ function update(){
                      
                      //grid[row - 1][col] = 2;
                      //grid[row][col - 1] = 2;
+                     if(row > 0){
                      nextGrid[row - 1][col] = 3;
+                     }
                      nextGrid[row][col - 1] = 4;
                      nextGrid[row + 1][col] = 5;
                      nextGrid[row][col + 1] = 6;
@@ -188,25 +190,6 @@ function update(){
                      nextGrid[row][col] = 1;
                 }
             }
-            
-            
-            
-			//If there is an above row...
-			if (row > 0){
-				//Checking all values on row above
-				
-                
-			}
-			//If there is a bottom row...
-			if (row < rowMax - 1){
-				//Check all values on row below
-				
-			}
-			//Check the left and right values
-			
-			
-			//If it's alive
-			
 		}
 	}
     
@@ -245,10 +228,11 @@ function update(){
     for(var row = 0; row < rowMax; row++){
         for(var col = 0; col < colMax; col++){
             if ((permaGrid[row][col] == 7 && grid[row][col] == 3) || (permaGrid[row][col] == 7 && grid[row][col] == 4) || (permaGrid[row][col] == 7 && grid[row][col] == 5) || (permaGrid[row][col] == 7 && grid[row][col] == 6)){
-                console.log("Nice");
                 grid[row][col] = permaGrid[row][col];
                 
-                grid[row - 1][col] = 3;
+                if(row > 0){
+                    grid[row - 1][col] = 3;
+                }
                 grid[row][col - 1] = 4;
                 grid[row + 1][col] = 5;
                 grid[row][col + 1] = 6;
@@ -275,7 +259,7 @@ function draw(){
 			} else if (grid[rows][cols] == 3 || grid[rows][cols] == 4 || grid[rows][cols] == 5 || grid[rows][cols] == 6){
 				ctx.fillStyle = "#59ABE3";
 			} else if (grid[rows][cols] == 2 || grid[rows][cols] == 7){
-				ctx.fillStyle = "#FF0000";
+				ctx.fillStyle = "#F64747";
 			}
 			//console.log(grid[rows][cols]);
 			ctx.fillRect(rows * 30, cols * 30, 29, 29);
