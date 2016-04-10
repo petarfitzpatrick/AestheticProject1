@@ -3,7 +3,6 @@ html{
 }
 
 h1{
-    clear: both;
     color: #ECECEC;
     font-family: 'Open Sans',sans-serif;
     font-size: 60px;
@@ -11,22 +10,24 @@ h1{
     margin: -26px 0px -14px 0px;
 }
 
+h2{
+    font-size: 20px;
+}
+
 canvas{
     position: relative;
     z-index: 2;
     background-color: #141414;
-    clear: both;
     margin: auto;
     padding: 0px;
     display: block;
 }
 
 aside{
-    position: relative;
-    margin-top: -290px;
+    position: fixed;
     padding: 0px 15px 0px 15px;
-    top: 358px;
-    left: 245px;
+    top: 47px;
+    left: 255px;
     font-family: 'Open Sans',sans-serif;
     color: #ECECEC;
     background-color: #6C7A89;
@@ -36,19 +37,20 @@ aside{
     z-index: 1;
 }
 
-#refresh{
+.button, .selector{
     background-color: #141414;
     margin: 10px;
     text-align: center;
 }
 
-#refresh:hover{
+
+.button:hover{
     -webkit-transition-duration: 0.4s;
     transition-duration: 0.4s;
     background-color: #674172;
     cursor: pointer;
 }
 
-#refresh:active{
+.button:active{
     background-color: #141414;
 }

@@ -2,7 +2,8 @@
 var c = document.getElementById("myCanvas");
 var ctx = c.getContext("2d");
     
-var button = document.querySelector("#refresh");
+//Hook up button
+var refresh = document.querySelector("#refresh");
 
 //Function to read off mouse values
 c.addEventListener("mousedown", doMouseDown, false);
@@ -11,6 +12,11 @@ function doMouseDown(event){
 	c_x = event.pageX;
 	c_y = event.pageY;
 }
+    
+//Get values based on user
+var decayVal = document.getElementById("decaySelect").value;
+var attackVal = document.getElementById("attackSelect").value;
+var delayVal = document.getElementById("delaySelect").value;
 
 //Grid is what it's all based on
 var grid = [];
@@ -84,7 +90,7 @@ function init(){
 			soundGrid[row][col] = col*100;
         }
 	}
-    button.onclick = init;
+    refresh.onclick = init;
 }
     
 //Begin program and loop it
@@ -137,7 +143,7 @@ function update(){
 	
 	for(var row = 0; row < rowMax; row++){
 		for(var col = 0; col < colMax; col++){
-            if (row < 29){
+            if (row <= 29){
                 //If this node were just clicked...
                 if (grid[row][col] == 2){
                      //Assign value to every surrounding node
@@ -146,14 +152,16 @@ function update(){
                      nextGrid[row - 1][col] = 3;
                      }
                      nextGrid[row][col - 1] = 4;
+                     if(row < 29){
                      nextGrid[row + 1][col] = 5;
+                     }
                      nextGrid[row][col + 1] = 6;
                      
                      //The permaGrid holds every red no matter what
                      permaGrid[row][col] = 7;
                      nextGrid[row][col] = permaGrid[row][col];
                      //Play the sound of that node!
-                     note( soundGrid[row][col], .02, .04, .06 );
+                     note( soundGrid[row][col], parseFloat(attackVal), parseFloat(decayVal), parseFloat(delayVal));
                 //3 is the left movement value
                 } else if (grid[row][col] == 3){
                     if (row > 0){
@@ -168,14 +176,16 @@ function update(){
                      nextGrid[row][col] = 0;
                 //5 is the right movement value
                 } else if (grid[row][col] == 5){
+                     if (row < 29){
                      nextGrid[row + 1][col] = 5;
+                     }
                      nextGrid[row][col] = 0;
                 //6 is the bottom movement value
                 } else if (grid[row][col] == 6){
                      nextGrid[row][col + 1] = 6;
                      nextGrid[row][col] = 0;
                 }
-            }
+            } 
 		}
 	}
     
@@ -202,9 +212,12 @@ function update(){
                     grid[row - 1][col] = 3;
                 }
                 grid[row][col - 1] = 4;
+                if (row < 29){
                 grid[row + 1][col] = 5;
+                }
                 grid[row][col + 1] = 6;
-                note( soundGrid[row][col], .02, .04, .06 );
+                note( soundGrid[row][col], parseFloat(attackVal), parseFloat(decayVal), parseFloat(delayVal));
+                console.log(parseFloat(decayVal));
             }
             else if (permaGrid[row][col]){
                 //Or it just keeps it
@@ -214,6 +227,11 @@ function update(){
     }
     //Check if the user has activated another node
     checkMouse();
+    
+    //Update Values
+    decayVal = document.getElementById("decaySelect").value;
+    attackVal = document.getElementById("attackSelect").value;
+    delayVal = document.getElementById("delaySelect").value;
 }
 
 //Draws squares where the nodes are!
@@ -232,4 +250,5 @@ function draw(){
 		}
 	}
 }
+
 })();
