@@ -11,34 +11,32 @@
 
 <script>
 (function(){
-	
 var c = document.getElementById("myCanvas");
 var ctx = c.getContext("2d");
 
-    
+//Function to read off mouse values
 c.addEventListener("mousedown", doMouseDown, false);
-
 var c_x, c_y;
-    
 function doMouseDown(event){
 	c_x = event.pageX;
 	c_y = event.pageY;
-	//console.log("X is " + c_x + " Y is " + c_y);
 }
 
+//Grid is what it's all based on
 var grid = [];
-
 //permaGrid to hold 7
 var permaGrid = [];
+//soundGrid holds values for each sound
+var soundGrid = [];
     
+//Currently 30 rows and columns. Can be changed
 var rowMax = 30;
 var colMax = 30;
 
-var soundGrid = [];
-
-//Audio Stuff
+//Create audio context
 var aud = new AudioContext();
 
+//note() function credit to Charlie
 var note = function( freq, attack, decay, delayTime ) {
   var osc = aud.createOscillator(),
       delay = aud.createDelay( 2 ),
@@ -86,10 +84,23 @@ for (var row = 0; row < rowMax; row++){
 	soundGrid[row] = [];
 }
 
+//Populates the two dimensional arrays
+function init(){
+	//Nested for loops to populate
+	for(var row = 0; row < rowMax; row++){
+		for(var col = 0; col < colMax; col++){
+			grid[row][col] = 0;
+            permaGrid[row][col] = 0;
+			soundGrid[row][col] = col*100;
+        }
+	}
+}
+    
 //Begin program and loop it
 init();
 window.requestAnimationFrame(animate);
 
+//Plays repeatedly
 function animate() {
     setTimeout(function() {
       window.requestAnimationFrame(animate);
@@ -97,20 +108,8 @@ function animate() {
 		draw();
     update();
 }
-
-//Populates both two dimensional arrays
-function init(){
-	//Nested for loops to populate
-	for(var row = 0; row < rowMax; row++){
-		for(var col = 0; col < colMax; col++){
-			//grid[row].push(Math.floor(Math.random() + 0.5));
-			grid[row][col] = 0;
-			soundGrid[row][col] = col*100;
-        }
-	}
-
-}
     
+//Checks the mouse and fills in the respective node
 function checkMouse(){
     //Account for margins
     var newX, newY;
@@ -123,23 +122,22 @@ function checkMouse(){
     rowRef = newY/30;
     
     if (newX > 0){
-        //console.log("Nice " + colRef + "  " + rowRef);
+        //Math.floor is used to round numbers down
         grid[Math.floor(colRef)][Math.floor(rowRef)] = 2;
     }
     
+    //Clear them after
     c_x = 0;
     c_y = 0;
 }
 
-//Updates the grid every frame
+//Updates the grid every frame checking the rules and mouse clicks
 function update(){
-	//Clear to begin
+	//Clear grids to begin
 	var newGrid = [];
 	for (var row = 0; row < rowMax; row++){
 		newGrid[row] = [];
 	}
-    
-    //Holds values of next grid
     var nextGrid = [];
 	for (var row = 0; row < rowMax; row++){
 		nextGrid[row] = [];
@@ -147,73 +145,49 @@ function update(){
 	
 	for(var row = 0; row < rowMax; row++){
 		for(var col = 0; col < colMax; col++){
-			//Var to count neighbors
-			var count = 0;
-            
             if (row < 29){
+                //If this node were just clicked...
                 if (grid[row][col] == 2){
-                     
-                     //grid[row - 1][col] = 2;
-                     //grid[row][col - 1] = 2;
+                     //Assign value to every surrounding node
+                     //Check row to avoid null exception
                      if(row > 0){
                      nextGrid[row - 1][col] = 3;
                      }
                      nextGrid[row][col - 1] = 4;
                      nextGrid[row + 1][col] = 5;
                      nextGrid[row][col + 1] = 6;
-                    
+                     
+                     //The permaGrid holds every red no matter what
                      permaGrid[row][col] = 7;
                      nextGrid[row][col] = permaGrid[row][col];
+                     //Play the sound of that node!
                      note( soundGrid[row][col], .02, .04, .06 );
-
                 //3 is the left movement value
                 } else if (grid[row][col] == 3){
                     if (row > 0){
+                     //Activate next node
                      nextGrid[row - 1][col] = 3;
-                    
-                     nextGrid[row][col] = 1;
-                    }
+                     }
+                     //Turn off current
+                     nextGrid[row][col] = 0;
                 //4 is the top movement value
                 } else if (grid[row][col] == 4){
                      nextGrid[row][col - 1] = 4;
-                    
-                     nextGrid[row][col] = 1;
+                     nextGrid[row][col] = 0;
                 //5 is the right movement value
                 } else if (grid[row][col] == 5){
                      nextGrid[row + 1][col] = 5;
-                    
-                     nextGrid[row][col] = 1;
+                     nextGrid[row][col] = 0;
                 //6 is the bottom movement value
                 } else if (grid[row][col] == 6){
                      nextGrid[row][col + 1] = 6;
-                    
-                     nextGrid[row][col] = 1;
+                     nextGrid[row][col] = 0;
                 }
             }
 		}
 	}
     
-     for(var row = 0; row < rowMax; row++){
-		   for(var col = 0; col < colMax; col++){
-             if (grid[row][col] == 2){
-                   //newGrid[row][col] = 2;
-             } else if (grid[row][col] == 1){
-                   //newGrid[row][col] = 1;
-             } else if (grid[row][col] == 3){
-                   //newGrid[row][col] = 3;
-             } else {
-                   //newGrid[row][col] = 0;
-              }
-            }
-    }
-	
-	//Populate next grid
-	for(var row = 0; row < rowMax; row++){
-		for(var col = 0; col < colMax; col++){
-			grid[row][col] = newGrid[row][col];
-		}
-	}
-    
+    //Assign grid its nextGrid values!
     for(var row = 0; row < rowMax; row++){
         for(var col = 0; col < colMax; col++){
             if (nextGrid[row][col]){
@@ -227,34 +201,35 @@ function update(){
     //Keep permaGrid values
     for(var row = 0; row < rowMax; row++){
         for(var col = 0; col < colMax; col++){
+            //This long if statement checks to see if a red node has been hit!
             if ((permaGrid[row][col] == 7 && grid[row][col] == 3) || (permaGrid[row][col] == 7 && grid[row][col] == 4) || (permaGrid[row][col] == 7 && grid[row][col] == 5) || (permaGrid[row][col] == 7 && grid[row][col] == 6)){
+                //It keeps the node as red
                 grid[row][col] = permaGrid[row][col];
-                
+                //Then it fires off the surrounding nodes
                 if(row > 0){
                     grid[row - 1][col] = 3;
                 }
                 grid[row][col - 1] = 4;
                 grid[row + 1][col] = 5;
                 grid[row][col + 1] = 6;
-                
                 note( soundGrid[row][col], .02, .04, .06 );
             }
             else if (permaGrid[row][col]){
+                //Or it just keeps it
                 grid[row][col] = permaGrid[row][col];
             }
         }
     }
-    
-    
+    //Check if the user has activated another node
     checkMouse();
 }
 
-
+//Draws squares where the nodes are!
 function draw(){
 	//Nested for loop for actually drawing
 	for(var rows = 0; rows < rowMax; rows++){
 		for(var cols = 0; cols < colMax; cols++){
-			if (grid[rows][cols] == 0 || grid[rows][cols] == 1){
+			if (grid[rows][cols] == 0){
 				ctx.fillStyle = "#674172";
 			} else if (grid[rows][cols] == 3 || grid[rows][cols] == 4 || grid[rows][cols] == 5 || grid[rows][cols] == 6){
 				ctx.fillStyle = "#59ABE3";
@@ -263,7 +238,6 @@ function draw(){
 			}
 			//console.log(grid[rows][cols]);
 			ctx.fillRect(rows * 30, cols * 30, 29, 29);
-			
 		}
 	}
 }
