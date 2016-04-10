@@ -15,12 +15,15 @@
 var c = document.getElementById("myCanvas");
 var ctx = c.getContext("2d");
 
+    
 c.addEventListener("mousedown", doMouseDown, false);
 
+var c_x, c_y;
+    
 function doMouseDown(event){
 	c_x = event.pageX;
 	c_y = event.pageY;
-	console.log("X is " + c_x + " Y is " + c_y);
+	//console.log("X is " + c_x + " Y is " + c_y);
 }
 
 var grid = [];
@@ -44,7 +47,7 @@ var note = function( freq, attack, decay, delayTime ) {
   
   // create volume envelope for oscillator
   oscVolume.gain.setValueAtTime( 0, aud.currentTime )
-  oscVolume.gain.linearRampToValueAtTime( .1, aud.currentTime + attack )
+  oscVolume.gain.linearRampToValueAtTime( .06, aud.currentTime + attack )
   oscVolume.gain.linearRampToValueAtTime( 0, aud.currentTime + attack + decay )
   
   // connect oscillator to gain to control its volume
@@ -88,7 +91,6 @@ function animate() {
     }, 100);
 		draw();
     update();
-
 }
 
 //Populates both two dimensional arrays
@@ -99,7 +101,7 @@ function init(){
 			//grid[row].push(Math.floor(Math.random() + 0.5));
 			grid[row][col] = 0;
 			soundGrid[row][col] = col*100;
-		}
+        }
 	}
 	grid[3][12] = 1;
 	grid[3][13] = 1;
@@ -107,6 +109,26 @@ function init(){
 	grid[3][11] = 1;
 	grid[12][3] = 1;
 	grid[7][7] = 1;
+}
+    
+function checkMouse(){
+    //Account for margins
+    var newX, newY;
+    newX = c_x - 8;
+    newY = c_y - 8;
+    
+    //New value to index col and row
+    var colRef, rowRef;
+    colRef = newX/30;
+    rowRef = newY/30;
+    
+    if (newX > 0){
+        console.log("Nice " + colRef + "  " + rowRef);
+        grid[Math.floor(colRef)][Math.floor(rowRef)] = 2;
+    }
+    
+    c_x = 0;
+    c_y = 0;
 }
 
 //Updates the grid every frame
@@ -169,6 +191,8 @@ function update(){
 			grid[row][col] = newGrid[row][col];
 		}
 	}
+    
+    checkMouse();
 }
 
 
@@ -180,6 +204,8 @@ function draw(){
 				ctx.fillStyle = "#674172";
 			} else if (grid[rows][cols] == 1){
 				ctx.fillStyle = "#59ABE3";
+			} else if (grid[rows][cols] == 2){
+				ctx.fillStyle = "#FF0000";
 			}
 			//console.log(grid[rows][cols]);
 			ctx.fillRect(rows * 30, cols * 30, 29, 29);
